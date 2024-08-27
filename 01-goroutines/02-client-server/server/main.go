@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -51,6 +52,7 @@ func HandleClientConnection(clientCon net.Conn) {
 		data = strings.TrimSpace(data)
 		log.Printf("Received data: %s", data)
 		response := "Response from server: " + data + "\n"
+		time.Sleep(100 * time.Millisecond)
 		_, err = clientCon.Write([]byte(response))
 		if err != nil {
 			log.Println("Error writing response:", err)

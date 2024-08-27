@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"io"
 	"log"
 	"net"
+	"strings"
 )
 
 func main() {
@@ -11,10 +14,11 @@ func main() {
 	//  write server program to handle concurrent client connections.
 
 	// 1 - start create server
-	tcpListener, err := net.Listen("tcp", "localhost:8000")
+	tcpListener, err := net.Listen("tcp", "localhost:9000")
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("server start on localhost:9000")
 
 	// 2 - start infinite loop to accept clients connection
 
@@ -35,26 +39,24 @@ func main() {
 // HandleClientConnection processes the client request and sends a response
 func HandleClientConnection(clientCon net.Conn) {
 	defer clientCon.Close()
-
-	//  io.ReadAll to read all data from the connection
-	data, err := io.ReadAll(clientCon)
-	if err != nil {
-		log.Println("Error reading data:", err)
-		return
+	reader := bufio.NewReader(clientCon)
+	for {
+		data, err := reader.ReadString('\n')
+		if err != nil {
+			if err != io.EOF {
+				log.Println("Error reading data:", err)
+			}
+			return
+		}
+		data = strings.TrimSpace(data)
+		log.Printf("Received data: %s", data)
+		response := "Response from server: " + data + "\n"
+		_, err = clientCon.Write([]byte(response))
+		if err != nil {
+			log.Println("Error writing response:", err)
+			return
+		}
 	}
-
-	//  log recived data from client
-	log.Printf("Received data %v", string(data))
-
-	//  Create Respose to client
-	response := "Response from server: " + string(data)
-	// Write the response back to the client
-	_, err = clientCon.Write([]byte(response))
-	if err != nil {
-		log.Println("Error writing response:", err)
-		return
-	}
-
 }
 
 // // HandleClientConnection processes the client request and sends a response
